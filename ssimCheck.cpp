@@ -17,27 +17,25 @@ Scalar getMSSIM( const Mat& I1, const Mat& I2);
 static void help(){
 	cout
 		<< "ssimCheck - compares two videos to produce a JSON file with frame-by-frame " << endl
-		<< "            psnr comparison, and in-depth SSIM comparison." << endl
+		<< "            psnr comparison. Add 'true' for SSIM comparison." << endl
 		<< endl
 		<< "Usage:" << endl
-		<< "ssimCheck <reference video> <test video> <ssim-trigger level> <result file> " << endl
+		<< "ssimCheck <reference video> <test video> <result file> [true]" << endl
 		<< endl;
 }
 
 int main(int argc, char *argv[]){
-	if (argc != 5){
+	if (argc < 4){
 		help();
 		cout << "Not enough parameters" << endl;
 		return -1;
 	}
 
+	bool withmssim = argv[4];
+
 	stringstream conv;
 
-	const string referenceVideo = argv[1], testVideo = argv[2], oFile = argv[4];
-
-	int psnrTriggerValue;
-	conv << argv[3];
-	conv >> psnrTriggerValue;
+	const string referenceVideo = argv[1], testVideo = argv[2], oFile = argv[3];
 
 	ofstream outputfile;
 	outputfile.open(oFile);
@@ -70,9 +68,6 @@ int main(int argc, char *argv[]){
 	cout << "Test resolution: " << dstS.width << "x" << dstS.height << "px" << endl;
 	cout << "Test framecount: " << captTest.get(CAP_PROP_FRAME_COUNT) << endl;
 
-	cout << "PSNR trigger value " << setiosflags(ios::fixed) << setprecision(3)
-		 << psnrTriggerValue << endl;
-
 	Mat frameRReference, frameReference, frameTest;
 	double psnrV;
 	Scalar mssimV;
@@ -95,7 +90,7 @@ int main(int argc, char *argv[]){
 
 		outputfile << "\"frame_" << frameNum << "\":{ \"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"";
 
-		if (psnrV < psnrTriggerValue && psnrV){
+		if (withmssim){
 			mssimV = getMSSIM(frameRReference, frameTest);
 			outputfile << ", \"mssim\": {\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\",\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\",\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"}";
 		}

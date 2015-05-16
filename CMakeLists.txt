@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( ssimCheck )
+find_package( OpenCV REQUIRED )
+add_executable( ssimCheck ssimCheck.cpp )
+target_link_libraries( ssimCheck ${OpenCV_LIBS} )

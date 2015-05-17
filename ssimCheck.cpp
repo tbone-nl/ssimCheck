@@ -62,17 +62,31 @@ int main(int argc, char *argv[]){
 		uTSi = Size((int) captTest.get(CAP_PROP_FRAME_WIDTH),
 			(int) captTest.get(CAP_PROP_FRAME_HEIGHT));
 
-
-	cout << "Reference resolution: " << refS.width << "x" << refS.height << "px" << endl;
-	cout << "Reference framecount: " << captReference.get(CAP_PROP_FRAME_COUNT) << endl;
-	cout << "Test resolution: " << dstS.width << "x" << dstS.height << "px" << endl;
-	cout << "Test framecount: " << captTest.get(CAP_PROP_FRAME_COUNT) << endl;
+	int totalTstFrames 	= captTest.get(CAP_PROP_FRAME_COUNT);
+	int totalSrcFrames 	= captReference.get(CAP_PROP_FRAME_COUNT);
+	int fourCCTstProp	= static_cast<int>(captTest.get(CAP_PROP_FOURCC));
+	int fourCCSrcProp	= static_cast<int>(captReference.get(CAP_PROP_FOURCC));
+	char fourCCTst[]	= {fourCCTstProp & 0XFF , (fourCCTstProp & 0XFF00) >> 8,(fourCCTstProp & 0XFF0000) >> 16,(fourCCTstProp & 0XF000000) >> 24, 0};
+	char fourCCSrc[]	= {fourCCSrcProp & 0XFF , (fourCCSrcProp & 0XFF00) >> 8,(fourCCSrcProp & 0XFF0000) >> 16,(fourCCSrcProp & 0XF000000) >> 24, 0};
 
 	Mat frameRReference, frameReference, frameTest;
 	double psnrV;
 	Scalar mssimV;
 
-	outputfile << "{\"reference\": {\"file\": \"" << referenceVideo << "\", \"dimensions\":\"" << refS.width << "x" << refS.height << "\", \"numframes\":\"" << captReference.get(CAP_PROP_FRAME_COUNT) << "\"}, \"test\": {\"file\": \"" << testVideo << "\", \"dimensions\":\"" << dstS.width << "x" << dstS.height << "\", \"numframes\":\"" << captTest.get(CAP_PROP_FRAME_COUNT) << "\"}, \"results\": {";
+	outputfile << "{" << endl
+		<< "	\"reference\":{" << endl
+		<< "		\"file\": \"" << referenceVideo << "\"," << endl
+		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
+		<< "		\"numframes\":\"" << totalSrcFrames << "\"," << endl
+		<< "		\"fourcc\":\"" << fourCCSrc << "\"" << endl
+		<< "	}," << endl
+		<< "	\"test\":{" << endl
+		<< "		\"file\": \"" << testVideo << "\"," << endl
+		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
+		<< "		\"numframes\":\"" << totalTstFrames << "\"," << endl
+		<< "		\"fourcc\":\"" << fourCCTst << "\"" << endl
+		<< "	}," << endl
+		<< "	\"results\":{" << endl;
 
 	for(;;){
 		captReference >> frameReference;
@@ -80,27 +94,41 @@ int main(int argc, char *argv[]){
 
 		if (frameReference.empty() || frameTest.empty()){
 			cout << "Comparison completed... " << endl;
+			cout << "Results can be found in " << oFile << endl;
+			cout << endl;
 			break;
 		}
-
 		++frameNum;
+
+		double curTstMsec = captTest.get(CAP_PROP_POS_MSEC);
+		double curSrcMsec = captReference.get(CAP_PROP_POS_MSEC);
 
 		resize(frameReference, frameRReference, dstS, 0, 0);
 		psnrV = getPSNR(frameRReference,frameTest);
 
-		outputfile << "\"frame_" << frameNum << "\":{ \"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"";
+		outputfile << "		\"frame_" << frameNum << "\":{" << endl
+			<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
+			<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
+			<< "			\"smsec\":\"" << curSrcMsec << "\"";
 
 		if (withmssim){
 			mssimV = getMSSIM(frameRReference, frameTest);
-			outputfile << ", \"mssim\": {\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\",\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\",\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"}";
+			outputfile << "," << endl
+				<< "			\"mssim\": {" << endl
+				<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
+				<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
+				<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
+				<< "			}";
 		}
 
-		outputfile << "},";
+		outputfile << endl
+			<< "		}," << endl;
 
 	}
 
-	outputfile << "\"framecount\":\"" << frameNum << "\"}";
-	outputfile << "}" << endl;
+	outputfile << "		\"framecount\":\"" << frameNum << "\"" << endl
+		<< "	}" << endl
+		<< "}" << endl;
 	return 0;
 }
 

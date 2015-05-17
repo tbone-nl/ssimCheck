@@ -104,20 +104,28 @@ int main(int argc, char *argv[]){
 		captTest >> frameTest;
 
 		if (frameReference.empty() || frameTest.empty()){
+			cout << "\x1B[2K";
+			cout << "\x1B[0E";
+			flush(cout);
 			cout << "Comparison completed... " << endl;
 			cout << "Results can be found in " << oFile << endl;
-			cout << endl;
 			break;
 		}
 		++frameNum;
 
-		double curTstMsec = captTest.get(CAP_PROP_POS_MSEC);
-		double curSrcMsec = captReference.get(CAP_PROP_POS_MSEC);
-
-		resize(frameReference, frameRReference, dstS, 0, 0);
-		psnrV = getPSNR(frameRReference,frameTest);
 
 		if ( frameNum % nth == 0 ){
+			double curTstMsec = captTest.get(CAP_PROP_POS_MSEC);
+			double curSrcMsec = captReference.get(CAP_PROP_POS_MSEC);
+
+			resize(frameReference, frameRReference, dstS, 0, 0);
+			psnrV = getPSNR(frameRReference,frameTest);
+
+			cout << "\x1B[2K";
+			cout << "\x1B[0E";
+			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV;
+			flush(cout);
+
 			outputfile << "		\"frame_" << frameNum << "\":{" << endl
 				<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
 				<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl

@@ -66,8 +66,14 @@ int main(int argc, char *argv[]){
 	int totalSrcFrames 	= captReference.get(CAP_PROP_FRAME_COUNT);
 	int fourCCTstProp	= static_cast<int>(captTest.get(CAP_PROP_FOURCC));
 	int fourCCSrcProp	= static_cast<int>(captReference.get(CAP_PROP_FOURCC));
-	char fourCCTst[]	= {fourCCTstProp & 0XFF , (fourCCTstProp & 0XFF00) >> 8,(fourCCTstProp & 0XFF0000) >> 16,(fourCCTstProp & 0XF000000) >> 24, 0};
-	char fourCCSrc[]	= {fourCCSrcProp & 0XFF , (fourCCSrcProp & 0XFF00) >> 8,(fourCCSrcProp & 0XFF0000) >> 16,(fourCCSrcProp & 0XF000000) >> 24, 0};
+	//char fourCCTst[]	= {fourCCTstProp & 0XFF , (fourCCTstProp & 0XFF00) >> 8,(fourCCTstProp & 0XFF0000) >> 16,(fourCCTstProp & 0XF000000) >> 24, 0};
+	//char fourCCSrc[]	= {fourCCSrcProp & 0XFF , (fourCCSrcProp & 0XFF00) >> 8,(fourCCSrcProp & 0XFF0000) >> 16,(fourCCSrcProp & 0XF000000) >> 24, 0};
+	union { int v; char c[5];} fourCCTst ;
+	fourCCTst.v = fourCCTstProp;
+	fourCCTst.c[4]='\0';
+	union { int v; char c[5];} fourCCSrc ;
+	fourCCSrc.v = fourCCSrcProp;
+	fourCCSrc.c[4]='\0';
 
 	Mat frameRReference, frameReference, frameTest;
 	double psnrV;
@@ -78,13 +84,13 @@ int main(int argc, char *argv[]){
 		<< "		\"file\": \"" << referenceVideo << "\"," << endl
 		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
 		<< "		\"numframes\":\"" << totalSrcFrames << "\"," << endl
-		<< "		\"fourcc\":\"" << fourCCSrc << "\"" << endl
+		<< "		\"fourcc\":\"" << fourCCSrc.c << "\"" << endl
 		<< "	}," << endl
 		<< "	\"test\":{" << endl
 		<< "		\"file\": \"" << testVideo << "\"," << endl
 		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
 		<< "		\"numframes\":\"" << totalTstFrames << "\"," << endl
-		<< "		\"fourcc\":\"" << fourCCTst << "\"" << endl
+		<< "		\"fourcc\":\"" << fourCCTst.c << "\"" << endl
 		<< "	}," << endl
 		<< "	\"results\":{" << endl;
 

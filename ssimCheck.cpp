@@ -20,22 +20,29 @@ static void help(){
 		<< "            psnr comparison. Add 'true' for SSIM comparison." << endl
 		<< endl
 		<< "Usage:" << endl
-		<< "ssimCheck <reference video> <test video> <result file> [true]" << endl
+		<< "ssimCheck <reference video> <test video> <result file> <nth frame> [true]" << endl
 		<< endl;
 }
 
 int main(int argc, char *argv[]){
-	if (argc < 4){
+	if (argc < 5){
 		help();
 		cout << "Not enough parameters" << endl;
 		return -1;
 	}
 
-	bool withmssim = argv[4];
+	bool withmssim = argv[5];
 
 	stringstream conv;
 
 	const string referenceVideo = argv[1], testVideo = argv[2], oFile = argv[3];
+
+	istringstream ss(argv[4]);
+	int nth;
+	if (!(ss >> nth)){
+		cerr << "nth frame not a number: " << argv[4] << endl;
+		return -1;
+	}
 
 	ofstream outputfile;
 	outputfile.open(oFile);
@@ -66,8 +73,6 @@ int main(int argc, char *argv[]){
 	int totalSrcFrames 	= captReference.get(CAP_PROP_FRAME_COUNT);
 	int fourCCTstProp	= static_cast<int>(captTest.get(CAP_PROP_FOURCC));
 	int fourCCSrcProp	= static_cast<int>(captReference.get(CAP_PROP_FOURCC));
-	//char fourCCTst[]	= {fourCCTstProp & 0XFF , (fourCCTstProp & 0XFF00) >> 8,(fourCCTstProp & 0XFF0000) >> 16,(fourCCTstProp & 0XF000000) >> 24, 0};
-	//char fourCCSrc[]	= {fourCCSrcProp & 0XFF , (fourCCSrcProp & 0XFF00) >> 8,(fourCCSrcProp & 0XFF0000) >> 16,(fourCCSrcProp & 0XF000000) >> 24, 0};
 	union { int v; char c[5];} fourCCTst ;
 	fourCCTst.v = fourCCTstProp;
 	fourCCTst.c[4]='\0';
@@ -112,26 +117,27 @@ int main(int argc, char *argv[]){
 		resize(frameReference, frameRReference, dstS, 0, 0);
 		psnrV = getPSNR(frameRReference,frameTest);
 
-		outputfile << "		\"frame_" << frameNum << "\":{" << endl
-			<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
-			<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
-			<< "			\"smsec\":\"" << curSrcMsec << "\"";
+		if ( frameNum % nth == 0 ){
+			outputfile << "		\"frame_" << frameNum << "\":{" << endl
+				<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
+				<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
+				<< "			\"smsec\":\"" << curSrcMsec << "\"";
 
-		if (withmssim){
-			mssimV = getMSSIM(frameRReference, frameTest);
-			outputfile << "," << endl
-				<< "			\"mssim\": {" << endl
-				<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
-				<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
-				<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
-				<< "			}";
+			if (withmssim){
+				mssimV = getMSSIM(frameRReference, frameTest);
+				outputfile << "," << endl
+					<< "			\"mssim\": {" << endl
+					<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
+					<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
+					<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
+					<< "			}";
+			}
+
+			outputfile << endl
+				<< "		}," << endl;
+
 		}
-
-		outputfile << endl
-			<< "		}," << endl;
-
 	}
-
 	outputfile << "		\"framecount\":\"" << frameNum << "\"" << endl
 		<< "	}" << endl
 		<< "}" << endl;

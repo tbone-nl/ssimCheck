@@ -37,6 +37,7 @@ int main(int argc, char **argv){
 	bool withmssim = false;
 	char *referenceVideo;
 	char *testVideo;
+	string tests;
 	double psnrV;
 	Scalar mssimV;
 	char *oFile;
@@ -122,6 +123,12 @@ int main(int argc, char **argv){
 	// prepare the Mat's for frame(image) manipulation
 	Mat frameRReference, frameReference, frameTest;
 
+	if (withmssim){
+		tests = "PSNR and MSSIM";
+	} else {
+		tests = "PSNR";
+	}
+
 	// write json header to output file
 	outputfile << "{" 									<< endl
 		<< "	\"reference\":{" 							<< endl
@@ -136,10 +143,12 @@ int main(int argc, char **argv){
 		<< "		\"numframes\":\"" << totalTstFrames << "\"," 			<< endl
 		<< "		\"fourcc\":\"" << fourCCTst.c << "\"" 				<< endl
 		<< "	}," 									<< endl
+		<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
 		<< "	\"results\":{" 								<< endl;
 
 	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << ")" << endl;
 	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << ")" << endl;
+	cout << "Tests: " << tests << endl;
 	cout << endl;
 
 	// start the frame loop

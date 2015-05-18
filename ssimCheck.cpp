@@ -3,6 +3,9 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -20,27 +23,51 @@ static void help(){
 		<< "            psnr comparison. Add 'true' for SSIM comparison." << endl
 		<< endl
 		<< "Usage:" << endl
-		<< "ssimCheck <reference video> <test video> <result file> <nth frame> [true]" << endl
+		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-m]" << endl
 		<< endl;
 }
 
-int main(int argc, char *argv[]){
-	if (argc < 5){
-		help();
-		cout << "Not enough parameters" << endl;
-		return -1;
+int main(int argc, char **argv){
+
+	extern char *optarg;
+	extern int optind;
+	bool withmssim = false;
+	char *referenceVideo;
+	char *testVideo;
+	char *oFile;
+	char *nthc;
+	int nth;
+	int c;
+
+	while ((c = getopt (argc, argv, "s:t:o:n:m")) != -1){
+		switch (c){
+			case 's':
+				referenceVideo = strdup( optarg );
+				break;
+			case 't':
+				testVideo = strdup( optarg );
+				break;
+			case 'o':
+				oFile = strdup( optarg );
+				break;
+			case 'n': 
+				nth = atoi ( strdup( optarg ) );
+				break;
+			case 'm':
+				withmssim = true;
+				break;
+			case '?':
+				help();
+				break;
+			default: 
+				help();
+				break;
+		}
 	}
 
-	bool withmssim = argv[5];
-
-	stringstream conv;
-
-	const string referenceVideo = argv[1], testVideo = argv[2], oFile = argv[3];
-
-	istringstream ss(argv[4]);
-	int nth;
-	if (!(ss >> nth)){
-		cerr << "nth frame not a number: " << argv[4] << endl;
+	if (argc < 5){
+		help();
+		cerr << "Not enough parameters" << endl;
 		return -1;
 	}
 

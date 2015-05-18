@@ -34,6 +34,8 @@ int main(int argc, char **argv){
 	bool withmssim = false;
 	char *referenceVideo;
 	char *testVideo;
+	double psnrV;
+	Scalar mssimV;
 	char *oFile;
 	char *nthc;
 	int nth;
@@ -73,16 +75,19 @@ int main(int argc, char **argv){
 
 	ofstream outputfile;
 	outputfile.open(oFile);
-
 	int frameNum = -1;
 
+	// get the videofiles in openCV::VideoCapture
 	VideoCapture captReference(referenceVideo), captTest(testVideo);
 
+	if (!outputfile.is_open()) {
+		cerr << "Could not open output file " << oFile << endl;
+		return -1;
+	}
 	if (!captReference.isOpened()){
 		cerr  << "Could not open reference video " << referenceVideo << endl;
 		return -1;
 	}
-
 	if (!captTest.isOpened()){
 		cerr  << "Could not open test video " << testVideo << endl;
 		return -1;
@@ -99,7 +104,8 @@ int main(int argc, char **argv){
 	int fourCCTstProp	= static_cast<int>(captTest.get(CAP_PROP_FOURCC));
 	int fourCCSrcProp	= static_cast<int>(captReference.get(CAP_PROP_FOURCC));
 
-
+	// do some union magic to make the fourCC index into readable text... doesn't work yet
+	// todo: make sure no illegal characters get returned
 	union { int v; char c[5];} fourCCTst ;
 	fourCCTst.v = fourCCTstProp;
 	fourCCTst.c[4]='\0';
@@ -107,10 +113,10 @@ int main(int argc, char **argv){
 	fourCCSrc.v = fourCCSrcProp;
 	fourCCSrc.c[4]='\0';
 
+	// prepare the Mat's for frame(image) manipulation
 	Mat frameRReference, frameReference, frameTest;
-	double psnrV;
-	Scalar mssimV;
 
+	// write json header to output file
 	outputfile << "{" 									<< endl
 		<< "	\"reference\":{" 							<< endl
 		<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
@@ -126,11 +132,17 @@ int main(int argc, char **argv){
 		<< "	}," 									<< endl
 		<< "	\"results\":{" 								<< endl;
 
+	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << ")" << endl;
+	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << ")" << endl;
+	cout << endl;
+
+	// start the frame loop
 	for(;;){
 		captReference >> frameReference;
 		captTest >> frameTest;
 
 		if (frameReference.empty() || frameTest.empty()){
+			// nothing more to do... clean up and exit.
 			cout << "\x1B[2K";
 			cout << "\x1B[0E";
 			flush(cout);
@@ -166,6 +178,8 @@ int main(int argc, char **argv){
 					<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
 					<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
 					<< "			}";
+				cout << " -> MSSIM: R: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << ", G: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << ", B: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100;
+				flush(cout);
 			}
 
 			outputfile << endl

@@ -79,27 +79,27 @@ int main(int argc, char **argv){
 	VideoCapture captReference(referenceVideo), captTest(testVideo);
 
 	if (!captReference.isOpened()){
-		cout  << "Could not open reference video " << referenceVideo << endl;
+		cerr  << "Could not open reference video " << referenceVideo << endl;
 		return -1;
 	}
 
 	if (!captTest.isOpened()){
-		cout  << "Could not open test video " << testVideo << endl;
+		cerr  << "Could not open test video " << testVideo << endl;
 		return -1;
 	}
 
-	Size 	dstS = Size((int) captTest.get(CAP_PROP_FRAME_WIDTH),
-			(int) captTest.get(CAP_PROP_FRAME_HEIGHT));
-
-	Size 	refS = Size((int) captReference.get(CAP_PROP_FRAME_WIDTH),
-			(int) captReference.get(CAP_PROP_FRAME_HEIGHT)),
-		uTSi = Size((int) captTest.get(CAP_PROP_FRAME_WIDTH),
-			(int) captTest.get(CAP_PROP_FRAME_HEIGHT));
-
+	Size 	dstS 		= Size((int) captTest.get(CAP_PROP_FRAME_WIDTH),
+					(int) captTest.get(CAP_PROP_FRAME_HEIGHT));
+	Size 	refS 		= Size((int) captReference.get(CAP_PROP_FRAME_WIDTH),
+					(int) captReference.get(CAP_PROP_FRAME_HEIGHT)),
+		uTSi 		= Size((int) captTest.get(CAP_PROP_FRAME_WIDTH),
+					(int) captTest.get(CAP_PROP_FRAME_HEIGHT));
 	int totalTstFrames 	= captTest.get(CAP_PROP_FRAME_COUNT);
 	int totalSrcFrames 	= captReference.get(CAP_PROP_FRAME_COUNT);
 	int fourCCTstProp	= static_cast<int>(captTest.get(CAP_PROP_FOURCC));
 	int fourCCSrcProp	= static_cast<int>(captReference.get(CAP_PROP_FOURCC));
+
+
 	union { int v; char c[5];} fourCCTst ;
 	fourCCTst.v = fourCCTstProp;
 	fourCCTst.c[4]='\0';
@@ -111,20 +111,20 @@ int main(int argc, char **argv){
 	double psnrV;
 	Scalar mssimV;
 
-	outputfile << "{" << endl
-		<< "	\"reference\":{" << endl
-		<< "		\"file\": \"" << referenceVideo << "\"," << endl
+	outputfile << "{" 									<< endl
+		<< "	\"reference\":{" 							<< endl
+		<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
 		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalSrcFrames << "\"," << endl
-		<< "		\"fourcc\":\"" << fourCCSrc.c << "\"" << endl
-		<< "	}," << endl
-		<< "	\"test\":{" << endl
-		<< "		\"file\": \"" << testVideo << "\"," << endl
+		<< "		\"numframes\":\"" << totalSrcFrames << "\"," 			<< endl
+		<< "		\"fourcc\":\"" << fourCCSrc.c << "\"" 				<< endl
+		<< "	}," 									<< endl
+		<< "	\"test\":{" 								<< endl
+		<< "		\"file\": \"" << testVideo << "\"," 				<< endl
 		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalTstFrames << "\"," << endl
-		<< "		\"fourcc\":\"" << fourCCTst.c << "\"" << endl
-		<< "	}," << endl
-		<< "	\"results\":{" << endl;
+		<< "		\"numframes\":\"" << totalTstFrames << "\"," 			<< endl
+		<< "		\"fourcc\":\"" << fourCCTst.c << "\"" 				<< endl
+		<< "	}," 									<< endl
+		<< "	\"results\":{" 								<< endl;
 
 	for(;;){
 		captReference >> frameReference;

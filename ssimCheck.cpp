@@ -17,14 +17,17 @@ using namespace cv;
 double getPSNR ( const Mat& I1, const Mat& I2);
 Scalar getMSSIM( const Mat& I1, const Mat& I2);
 
+static void usage(){
+	cout
+		<< "Usage:" << endl
+		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-m]" << endl;
+
+}
 static void help(){
 	cout
 		<< "ssimCheck - compares two videos to produce a JSON file with frame-by-frame " << endl
-		<< "            psnr comparison. Add 'true' for SSIM comparison." << endl
-		<< endl
-		<< "Usage:" << endl
-		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-m]" << endl
-		<< endl;
+		<< "            psnr comparison. Add 'true' for SSIM comparison." << endl;
+	usage();
 }
 
 int main(int argc, char **argv){
@@ -68,8 +71,8 @@ int main(int argc, char **argv){
 	}
 
 	if (argc < 5){
-		help();
 		cerr << "Not enough parameters" << endl;
+		usage();
 		return -1;
 	}
 
@@ -82,14 +85,17 @@ int main(int argc, char **argv){
 
 	if (!outputfile.is_open()) {
 		cerr << "Could not open output file " << oFile << endl;
+		usage();
 		return -1;
 	}
 	if (!captReference.isOpened()){
 		cerr  << "Could not open reference video " << referenceVideo << endl;
+		usage();
 		return -1;
 	}
 	if (!captTest.isOpened()){
 		cerr  << "Could not open test video " << testVideo << endl;
+		usage();
 		return -1;
 	}
 
@@ -212,8 +218,7 @@ double getPSNR(const Mat& I1, const Mat& I2){
 	}
 }
 
-Scalar getMSSIM( const Mat& i1, const Mat& i2)
-{
+Scalar getMSSIM( const Mat& i1, const Mat& i2){
 	const double C1 = 6.5025, C2 = 58.5225;
 	int d = CV_32F;
 

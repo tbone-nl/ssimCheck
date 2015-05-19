@@ -4,5 +4,5 @@ Requires OpenCV for compilation.
 
 ## Usage:
 ```
-ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-m]
+ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-a <source frame advance>] [-b <test frame advance>] [-m]
 ```

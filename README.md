@@ -1,5 +1,5 @@
 # ssimCheck
-ssimCheck, compare two video files of different sizes, output JSON file with frame-by-frame results.
+ssimCheck, compare two video files of different dimensions and framelength, output JSON file with frame-by-frame results.
 Requires OpenCV for compilation.
 
 ## Usage:

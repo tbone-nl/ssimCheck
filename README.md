@@ -2,6 +2,13 @@
 ssimCheck, compare two video files of different dimensions and framelength, output JSON file with frame-by-frame results.
 Requires OpenCV for compilation.
 
+## Building:
+```
+cmake .
+make
+./ssimCheck ...
+```
+
 ## Usage:
 ```
 ssimCheck -s <reference video> \

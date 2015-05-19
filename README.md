@@ -8,6 +8,11 @@ cmake .
 make
 ./ssimCheck ...
 ```
+... or alternatively use the "works on my machine" Makefile:
+```
+make ssimCheck
+./ssimCheck ...
+```
 
 ## Usage:
 ```

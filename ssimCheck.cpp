@@ -20,7 +20,7 @@ Scalar getMSSIM( const Mat& I1, const Mat& I2);
 static void usage(){
 	cout
 		<< "Usage:" << endl
-		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-m]" << endl;
+		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-a <source frame advance>] [-b <test frame advance>] [-m]" << endl;
 
 }
 static void help(){
@@ -43,9 +43,13 @@ int main(int argc, char **argv){
 	char *oFile;
 	char *nthc;
 	int nth;
+	int tfa = 0; // test frame advance
+	int sfa = 0; // source frame advance
+	int tfc = 0; // test frame counter
+	int sfc = 0; // source frame counter
 	int c;
 
-	while ((c = getopt (argc, argv, "s:t:o:n:m")) != -1){
+	while ((c = getopt (argc, argv, "s:t:o:n:a:b:m")) != -1){
 		switch (c){
 			case 's':
 				referenceVideo = strdup( optarg );
@@ -58,6 +62,12 @@ int main(int argc, char **argv){
 				break;
 			case 'n': 
 				nth = atoi ( strdup( optarg ) );
+				break;
+			case 'a': 
+				sfa = atoi ( strdup( optarg ) );
+				break;
+			case 'b': 
+				tfa = atoi ( strdup( optarg ) );
 				break;
 			case 'm':
 				withmssim = true;
@@ -146,12 +156,34 @@ int main(int argc, char **argv){
 		<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
 		<< "	\"results\":{" 								<< endl;
 
-	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << ")" << endl;
-	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << ")" << endl;
+	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << " [" << totalSrcFrames << " frames])" << endl;
+	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << " [" << totalTstFrames << " frames])" << endl;
 	cout << "Tests: " << tests << endl;
 	cout << endl;
 
 	// start the frame loop
+	// shift the test video tfa frame ahead:
+	if (tfa > tfc){
+		while (tfc < tfa){
+			captTest >> frameTest;
+			++tfc;
+		}
+	} else {
+		cout << "No test frame advance" << endl;
+	}
+
+	if (sfa > sfc) {
+		while (sfc < sfa){
+			captReference >> frameReference;
+			++sfc;
+		}
+	} else {
+		cout << "No source frame advance" << endl;
+	}
+
+	cout << "Skipped test video " << tfc << " frames ahead" << endl;
+	cout << "Skipped source video " << sfc << " frames ahead" << endl;
+
 	for(;;){
 		captReference >> frameReference;
 		captTest >> frameTest;
@@ -178,7 +210,6 @@ int main(int argc, char **argv){
 			cout << "\x1B[2K";
 			cout << "\x1B[0E";
 			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV;
-			flush(cout);
 
 			outputfile << "		\"frame_" << frameNum << "\":{" << endl
 				<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
@@ -194,8 +225,8 @@ int main(int argc, char **argv){
 					<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
 					<< "			}";
 				cout << " -> MSSIM: R: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << ", G: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << ", B: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100;
-				flush(cout);
 			}
+			flush(cout);
 
 			outputfile << endl
 				<< "		}," << endl;

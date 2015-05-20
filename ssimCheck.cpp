@@ -146,13 +146,11 @@ int main(int argc, char **argv){
 		<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
 		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
 		<< "		\"numframes\":\"" << totalSrcFrames << "\"," 			<< endl
-		<< "		\"fourcc\":\"" << fourCCSrc.c << "\"" 				<< endl
 		<< "	}," 									<< endl
 		<< "	\"test\":{" 								<< endl
 		<< "		\"file\": \"" << testVideo << "\"," 				<< endl
 		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
 		<< "		\"numframes\":\"" << totalTstFrames << "\"," 			<< endl
-		<< "		\"fourcc\":\"" << fourCCTst.c << "\"" 				<< endl
 		<< "	}," 									<< endl
 		<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
 		<< "	\"results\":{" 								<< endl;

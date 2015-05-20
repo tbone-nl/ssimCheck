@@ -5,12 +5,6 @@ Requires OpenCV for compilation.
 
 ## Building:
 ```
-cmake .
-make
-./ssimCheck ...
-```
-... or alternatively use the "works on my machine" Makefile:
-```
 make ssimCheck
 ./bin/ssimCheck ...
 make install

@@ -15,6 +15,7 @@ using namespace std;
 using namespace cv;
 
 double getPSNR ( const Mat& I1, const Mat& I2);
+double getRMSE ( const Mat& I1, const Mat& I2);
 Scalar getMSSIM( const Mat& I1, const Mat& I2);
 
 static void usage(){
@@ -31,7 +32,6 @@ static void help(){
 }
 
 int main(int argc, char **argv){
-
 	extern char *optarg;
 	extern int optind;
 	bool withmssim = false;
@@ -39,6 +39,7 @@ int main(int argc, char **argv){
 	char *testVideo;
 	string tests;
 	double psnrV;
+	double rmseV;
 	Scalar mssimV;
 	char *oFile;
 	char *nthc;
@@ -206,13 +207,15 @@ int main(int argc, char **argv){
 
 			resize(frameReference, frameRReference, dstS, 0, 0);
 			psnrV = getPSNR(frameRReference,frameTest);
+			rmseV = getRMSE(frameRReference, frameTest);
 
 			cout << "\x1B[2K";
 			cout << "\x1B[0E";
-			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV;
+			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV << " RMSE: " << setiosflags(ios::fixed) << setprecision(3) << rmseV;
 
 			outputfile << "		\"frame_" << frameNum << "\":{" << endl
 				<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
+				<< "			\"rmse\":\"" << setiosflags(ios::fixed) << setprecision(3) << rmseV << "\"," << endl
 				<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
 				<< "			\"smsec\":\"" << curSrcMsec << "\"";
 
@@ -255,6 +258,25 @@ double getPSNR(const Mat& I1, const Mat& I2){
 		double mse  = sse / (double)(I1.channels() * I1.total());
 		double psnr = 10.0 * log10((255 * 255) / mse);
 		return psnr;
+	}
+}
+
+double getRMSE( const Mat& I1, const Mat& I2 ){
+	Mat s1;
+	absdiff(I1, I2, s1); 
+	s1.convertTo(s1, CV_32F);
+	s1 = s1.mul(s1);
+
+	Scalar s = sum(s1);
+
+	double sse = s.val[0] + s.val[1] + s.val[2];
+
+	if( sse <= 1e-10)
+		return 0;
+	else{
+		double mse  = sse / (double)(I1.channels() * I1.total());
+		double rmse = sqrt(mse);
+		return rmse;
 	}
 }
 

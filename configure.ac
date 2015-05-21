@@ -1,11 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
-AC_INIT([ssimCheck], [0.3], [thijs.boonstra@npo.nl])
-AM_INIT_AUTOMAKE
+AC_PREREQ([2.67])
+AC_INIT([ssimCheck], [0.3], [t.boonstra@gmail.com])
 AC_CONFIG_SRCDIR([src/ssimCheck.cpp])
-#AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -16,10 +15,11 @@ AC_PROG_CXX
 AC_CHECK_HEADERS([stdlib.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_HEADER_STDBOOL
+AC_HEADER_STDBOOL
 
 # Checks for library functions.
 AC_CHECK_FUNCS([sqrt strdup])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
+AM_INIT_AUTOMAKE

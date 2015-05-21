@@ -44,6 +44,9 @@ int main(int argc, char **argv){
 	char *oFile;
 	char *nthc;
 	int nth;
+	int seconds;
+	int minutes;
+	int hours;
 	int tfa = 0; // test frame advance
 	int sfa = 0; // source frame advance
 	int tfc = 0; // test frame counter
@@ -150,7 +153,7 @@ int main(int argc, char **argv){
 		<< "	\"test\":{" 								<< endl
 		<< "		\"file\": \"" << testVideo << "\"," 				<< endl
 		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalTstFrames << "\"," 			<< endl
+		<< "		\"numframes\":\"" << totalTstFrames << "\"" 			<< endl
 		<< "	}," 									<< endl
 		<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
 		<< "	\"results\":{" 								<< endl;

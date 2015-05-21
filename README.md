@@ -5,12 +5,9 @@ Requires OpenCV for compilation.
 
 ## Building:
 ```
-make ssimCheck
-./bin/ssimCheck ...
+./configure
+make
 make install
-/tmp/ssimCheck ...
-make install DESTDIR=/usr/local/bin
-/usr/local/bin/ssimCheck ...
 ```
 
 ## Usage:

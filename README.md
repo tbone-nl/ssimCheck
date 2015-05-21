@@ -7,8 +7,13 @@ Requires OpenCV for compilation.
 ```
 ./configure
 make
+```
+ssimCheck binary is now in ./src
+
+```
 make install
 ```
+ssimCheck binary is now in /usr/local/bin
 
 ## Usage:
 ```

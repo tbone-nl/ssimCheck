@@ -5,13 +5,12 @@ Requires OpenCV for compilation.
 
 ## Building:
 ```
-./configure
 make
 ```
-ssimCheck binary is now in ./src
+ssimCheck binary is now in ./bin
 
 ```
-make install
+make install PREFIX=/usr/local
 ```
 ssimCheck binary is now in /usr/local/bin
 

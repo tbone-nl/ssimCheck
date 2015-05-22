@@ -51,6 +51,9 @@ int main(int argc, char **argv){
 	int sfa = 0; // source frame advance
 	int tfc = 0; // test frame counter
 	int sfc = 0; // source frame counter
+	int loops = 0; // loopcounter
+	double sumpsnr;
+	double sumrmse;
 	int c;
 
 	while ((c = getopt (argc, argv, "s:t:o:n:a:b:m")) != -1){
@@ -138,9 +141,9 @@ int main(int argc, char **argv){
 	Mat frameRReference, frameReference, frameTest;
 
 	if (withmssim){
-		tests = "PSNR and MSSIM";
+		tests = "PSNR, RMSE and MSSIM";
 	} else {
-		tests = "PSNR";
+		tests = "PSNR and RMSE";
 	}
 
 	// write json header to output file
@@ -148,7 +151,7 @@ int main(int argc, char **argv){
 		<< "	\"reference\":{" 							<< endl
 		<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
 		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalSrcFrames << "\"," 			<< endl
+		<< "		\"numframes\":\"" << totalSrcFrames << "\"" 			<< endl
 		<< "	}," 									<< endl
 		<< "	\"test\":{" 								<< endl
 		<< "		\"file\": \"" << testVideo << "\"," 				<< endl
@@ -203,12 +206,16 @@ int main(int argc, char **argv){
 
 
 		if ( frameNum % nth == 0 ){
+			++loops;
 			double curTstMsec = captTest.get(CAP_PROP_POS_MSEC);
 			double curSrcMsec = captReference.get(CAP_PROP_POS_MSEC);
 
 			resize(frameReference, frameRReference, dstS, 0, 0);
 			psnrV = getPSNR(frameRReference,frameTest);
 			rmseV = getRMSE(frameRReference, frameTest);
+
+			sumpsnr += psnrV;
+			sumrmse += rmseV;
 
 			cout << "\x1B[2K";
 			cout << "\x1B[0E";
@@ -237,7 +244,11 @@ int main(int argc, char **argv){
 
 		}
 	}
-	outputfile << "		\"framecount\":\"" << frameNum << "\"" << endl
+	double avgpsnr = sumpsnr / loops;
+	double avgrmse = sumrmse / loops;
+	outputfile << "		\"framecount\":\"" << frameNum << "\"," << endl
+		<< "		\"avg psnr\":\"" << avgpsnr << "\"," << endl
+		<< "		\"avg rmse\":\"" << avgrmse << "\"" << endl
 		<< "	}" << endl
 		<< "}" << endl;
 	return 0;

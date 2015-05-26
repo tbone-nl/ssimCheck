@@ -1,6 +1,6 @@
-CPP = c++
-CPPFLAGS := $(shell pkg-config --cflags opencv)
-LDFLAGS := $(shell pkg-config --libs opencv)
+CPP=c++
+CPPFLAGS=$(shell pkg-config --cflags opencv)
+LDFLAGS=$(shell pkg-config --libs opencv)
 BINDIR=bin
 SRCDIR=src
 DESTDIR=

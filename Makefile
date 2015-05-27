@@ -11,7 +11,7 @@ clean:
 	rm -f $(BINDIR)/ssimCheck
 
 ssimCheck: $(SRCDIR)/ssimCheck
-	mv $(SRCDIR)/ssimCheck $(BINDIR)/ssimCheck
+	cp $(SRCDIR)/ssimCheck $(BINDIR)/ssimCheck
 
 install: ssimCheck
 	mkdir -p $(DESTDIR)$(PREFIX)/$(BINDIR)

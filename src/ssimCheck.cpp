@@ -85,6 +85,7 @@ int main(int argc, char **argv){
 				break;
 			case 'f':
 				outputformat = strdup( optarg );
+				break;
 			case '?':
 				help();
 				break;

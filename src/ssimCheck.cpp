@@ -21,7 +21,7 @@ Scalar getMSSIM( const Mat& I1, const Mat& I2);
 static void usage(){
 	cout
 		<< "Usage:" << endl
-		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-a <source frame advance>] [-b <test frame advance>] [-m]" << endl;
+		<< "ssimCheck -s <reference video> -t <test video> -o <result file> -n <nth frame> [-f <outputformat>] [-a <source frame advance>] [-b <test frame advance>] [-m]" << endl;
 
 }
 static void help(){
@@ -38,6 +38,10 @@ int main(int argc, char **argv){
 	char *referenceVideo;
 	char *testVideo;
 	string tests;
+	const char *templateHeader;
+	const char *templateFrame;
+	const char *templateFooter;
+	string outputformat = "json";
 	double psnrV;
 	double rmseV;
 	Scalar mssimV;
@@ -56,7 +60,7 @@ int main(int argc, char **argv){
 	double sumrmse;
 	int c;
 
-	while ((c = getopt (argc, argv, "s:t:o:n:a:b:m")) != -1){
+	while ((c = getopt (argc, argv, "s:t:o:n:f:a:b:m")) != -1){
 		switch (c){
 			case 's':
 				referenceVideo = strdup( optarg );
@@ -79,6 +83,8 @@ int main(int argc, char **argv){
 			case 'm':
 				withmssim = true;
 				break;
+			case 'f':
+				outputformat = strdup( optarg );
 			case '?':
 				help();
 				break;
@@ -94,18 +100,79 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	ofstream outputfile;
-	outputfile.open(oFile);
+	FILE * outputfile;
+	//ofstream outputfile;
+	//outputfile.open(oFile);
+	outputfile = fopen(oFile, "w");
+
 	int frameNum = -1;
+
+	if (outputformat == "xml") {
+		templateHeader = 	"<resultset>					\n"
+					"	<reference>				\n"
+					"		<filename>%s</filename>		\n"
+					"		<dimensions>%s</dimensions>	\n"
+					"		<numframes>%d</numframes>	\n"
+					"	</reference>				\n"
+					"	<test>					\n"
+					"		<filename>%s</filename>		\n"
+					"		<dimensions>%s</dimensions>	\n"
+					"		<numframes>%d</numframes>	\n"
+					"	</test>					\n"
+					"	<testsPerformed>%s</testsPerformed>	\n"
+					"	<results>				\n";
+
+		templateFrame = 	"		<frame count='%d'>		\n"
+					"			<psnr>%f</psnr>		\n"
+					"			<rmse>%f</rmse>		\n"
+					"			<tmsec>%f</tmsec>	\n"
+					"			<smsec>%f</smsec>	\n"
+					"		</frame>			\n";
+
+		templateFooter = 	"		<framecount>%d</framecount>	\n"
+					"		<averagepsnr>%d</avaragepsnr>	\n"
+					"		<averagermse>%d</avaragermse>	\n"
+					"	</results>				\n"
+					"</resultset>					\n";
+	}
+
+	if (outputformat == "json") {
+		templateHeader = 	"{						\n"
+					"	\"reference\":{				\n"
+					"		\"file\":\"%s\",		\n"
+					"		\"dimensions\":\"%s\",		\n"
+					"		\"numframes\":\"%d\"		\n"
+					"	},					\n"
+					"	\"test\":{				\n"
+					"		\"file\":\"%s\",		\n"
+					"		\"dimensions\":\"%s\",		\n"
+					"		\"numframes\":\"%d\"		\n"
+					"	},					\n"
+					"	\"testsPerformed\":\"%s\",		\n"
+					"	\"results\":{				\n";
+
+		templateFrame = 	"		\"frame_%d\":{			\n"
+					"			\"psnr\":\"%f\",	\n"
+					"			\"rmse\":\"%f\",	\n"
+					"			\"tmsec\":\"%f\",	\n"
+					"			\"smsec\":\"%f\"	\n"
+					"		},				\n";
+		templateFooter = 	"		\"framecount\":\"%d\",		\n"
+					"		\"avgpsnr\":\"%d\",		\n"
+					"		\"avgrmse\":\"%d\",		\n"
+					"	}					\n"
+					"}						";
+	}
+
 
 	// get the videofiles in openCV::VideoCapture
 	VideoCapture captReference(referenceVideo), captTest(testVideo);
 
-	if (!outputfile.is_open()) {
-		cerr << "Could not open output file " << oFile << endl;
-		usage();
-		return -1;
-	}
+	//if (!outputfile.is_open()) {
+	//	cerr << "Could not open output file " << oFile << endl;
+	//	usage();
+	//	return -1;
+	//}
 	if (!captReference.isOpened()){
 		cerr  << "Could not open reference video " << referenceVideo << endl;
 		usage();
@@ -146,24 +213,28 @@ int main(int argc, char **argv){
 		tests = "PSNR and RMSE";
 	}
 
+	string sourceDims = to_string(refS.width) + "x" + to_string(refS.height);
+	string testDims = to_string(dstS.width) + "x" + to_string(dstS.height);
 	// write json header to output file
-	outputfile << "{" 									<< endl
-		<< "	\"reference\":{" 							<< endl
-		<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
-		<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalSrcFrames << "\"" 			<< endl
-		<< "	}," 									<< endl
-		<< "	\"test\":{" 								<< endl
-		<< "		\"file\": \"" << testVideo << "\"," 				<< endl
-		<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
-		<< "		\"numframes\":\"" << totalTstFrames << "\"" 			<< endl
-		<< "	}," 									<< endl
-		<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
-		<< "	\"results\":{" 								<< endl;
+	fprintf(outputfile, templateHeader, referenceVideo, sourceDims.c_str(), totalSrcFrames, testVideo, testDims.c_str(), totalTstFrames, tests.c_str());
+	//outputfile << "{" 									<< endl
+	//	<< "	\"reference\":{" 							<< endl
+	//	<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
+	//	<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
+	//	<< "		\"numframes\":\"" << totalSrcFrames << "\"" 			<< endl
+	//	<< "	}," 									<< endl
+	//	<< "	\"test\":{" 								<< endl
+	//	<< "		\"file\": \"" << testVideo << "\"," 				<< endl
+	//	<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
+	//	<< "		\"numframes\":\"" << totalTstFrames << "\"" 			<< endl
+	//	<< "	}," 									<< endl
+	//	<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
+	//	<< "	\"results\":{" 								<< endl;
 
 	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << " [" << totalSrcFrames << " frames])" << endl;
 	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << " [" << totalTstFrames << " frames])" << endl;
 	cout << "Tests: " << tests << endl;
+	cout << "Output format: " << outputformat << endl;
 	cout << endl;
 
 	// start the frame loop
@@ -221,36 +292,39 @@ int main(int argc, char **argv){
 			cout << "\x1B[0E";
 			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV << " RMSE: " << setiosflags(ios::fixed) << setprecision(3) << rmseV;
 
-			outputfile << "		\"frame_" << frameNum << "\":{" << endl
-				<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
-				<< "			\"rmse\":\"" << setiosflags(ios::fixed) << setprecision(3) << rmseV << "\"," << endl
-				<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
-				<< "			\"smsec\":\"" << curSrcMsec << "\"";
+			fprintf(outputfile, templateFrame, frameNum, psnrV, rmseV, curTstMsec, curSrcMsec);
+			//outputfile << "		\"frame_" << frameNum << "\":{" << endl
+			//	<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
+			//	<< "			\"rmse\":\"" << setiosflags(ios::fixed) << setprecision(3) << rmseV << "\"," << endl
+			//	<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
+			//	<< "			\"smsec\":\"" << curSrcMsec << "\"";
 
 			if (withmssim){
 				mssimV = getMSSIM(frameRReference, frameTest);
-				outputfile << "," << endl
-					<< "			\"mssim\": {" << endl
-					<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
-					<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
-					<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
-					<< "			}";
+			//	outputfile << "," << endl
+			//		<< "			\"mssim\": {" << endl
+			//		<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
+			//		<< "				\"G\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << "\"," << endl
+			//		<< "				\"B\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100 << "\"" << endl
+			//		<< "			}";
 				cout << " -> MSSIM: R: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << ", G: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << ", B: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100;
 			}
 			flush(cout);
 
-			outputfile << endl
-				<< "		}," << endl;
+			//outputfile << endl
+			//	<< "		}," << endl;
 
 		}
 	}
 	double avgpsnr = sumpsnr / loops;
 	double avgrmse = sumrmse / loops;
-	outputfile << "		\"framecount\":\"" << frameNum << "\"," << endl
-		<< "		\"avg psnr\":\"" << avgpsnr << "\"," << endl
-		<< "		\"avg rmse\":\"" << avgrmse << "\"" << endl
-		<< "	}" << endl
-		<< "}" << endl;
+	fprintf(outputfile, templateFooter, frameNum, avgpsnr, avgrmse);
+	//outputfile << "		\"framecount\":\"" << frameNum << "\"," << endl
+	//	<< "		\"avg psnr\":\"" << avgpsnr << "\"," << endl
+	//	<< "		\"avg rmse\":\"" << avgrmse << "\"" << endl
+	//	<< "	}" << endl
+	//	<< "}" << endl;
+	fclose(outputfile);
 	return 0;
 }
 

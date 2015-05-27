@@ -14,4 +14,5 @@ ssimCheck: $(SRCDIR)/ssimCheck
 	mv $(SRCDIR)/ssimCheck $(BINDIR)/ssimCheck
 
 install: ssimCheck
+	mkdir -p $(DESTDIR)$(PREFIX)/$(BINDIR)
 	cp $(BINDIR)/ssimCheck $(DESTDIR)$(PREFIX)/$(BINDIR)

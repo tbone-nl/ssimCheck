@@ -1,4 +1,4 @@
-CPPFLAGS=$(shell pkg-config --cflags opencv)
+CPPFLAGS=$(shell pkg-config --cflags opencv) -std=c++0x
 LDFLAGS=$(shell pkg-config --libs opencv)
 BINDIR=bin
 SRCDIR=src

@@ -214,8 +214,8 @@ int main(int argc, char **argv){
 		tests = "PSNR and RMSE";
 	}
 
-	string sourceDims = to_string(refS.width) + "x" + to_string(refS.height);
-	string testDims = to_string(dstS.width) + "x" + to_string(dstS.height);
+	string sourceDims = std::to_string(refS.width) + "x" + std::to_string(refS.height);
+	string testDims = std::to_string(dstS.width) + "x" + std::to_string(dstS.height);
 	// write json header to output file
 	fprintf(outputfile, templateHeader, referenceVideo, sourceDims.c_str(), totalSrcFrames, testVideo, testDims.c_str(), totalTstFrames, tests.c_str());
 	//outputfile << "{" 									<< endl

@@ -292,6 +292,8 @@ int main(int argc, char **argv){
 			flush(cout);
 		}
 	}
+
+	// make avarages
 	double avgpsnr = sumpsnr / loops;
 	double avgrmse = sumrmse / loops;
 

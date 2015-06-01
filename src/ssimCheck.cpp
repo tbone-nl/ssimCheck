@@ -102,8 +102,6 @@ int main(int argc, char **argv){
 	}
 
 	FILE * outputfile;
-	//ofstream outputfile;
-	//outputfile.open(oFile);
 	outputfile = fopen(oFile, "w");
 
 	int frameNum = -1;
@@ -158,6 +156,7 @@ int main(int argc, char **argv){
 					"			\"tmsec\":\"%f\",	\n"
 					"			\"smsec\":\"%f\"	\n"
 					"		},				\n";
+
 		templateFooter = 	"		\"framecount\":\"%d\",		\n"
 					"		\"avgpsnr\":\"%d\",		\n"
 					"		\"avgrmse\":\"%d\",		\n"
@@ -169,11 +168,6 @@ int main(int argc, char **argv){
 	// get the videofiles in openCV::VideoCapture
 	VideoCapture captReference(referenceVideo), captTest(testVideo);
 
-	//if (!outputfile.is_open()) {
-	//	cerr << "Could not open output file " << oFile << endl;
-	//	usage();
-	//	return -1;
-	//}
 	if (!captReference.isOpened()){
 		cerr  << "Could not open reference video " << referenceVideo << endl;
 		usage();
@@ -216,21 +210,9 @@ int main(int argc, char **argv){
 
 	string sourceDims = std::to_string(static_cast<long long>(refS.width)) + "x" + std::to_string(static_cast<long long>(refS.height));
 	string testDims = std::to_string(static_cast<long long>(dstS.width)) + "x" + std::to_string(static_cast<long long>(dstS.height));
+
 	// write json header to output file
 	fprintf(outputfile, templateHeader, referenceVideo, sourceDims.c_str(), totalSrcFrames, testVideo, testDims.c_str(), totalTstFrames, tests.c_str());
-	//outputfile << "{" 									<< endl
-	//	<< "	\"reference\":{" 							<< endl
-	//	<< "		\"file\": \"" << referenceVideo << "\"," 			<< endl
-	//	<< "		\"dimensions\":\"" << refS.width << "x" << refS.height << "\"," << endl
-	//	<< "		\"numframes\":\"" << totalSrcFrames << "\"" 			<< endl
-	//	<< "	}," 									<< endl
-	//	<< "	\"test\":{" 								<< endl
-	//	<< "		\"file\": \"" << testVideo << "\"," 				<< endl
-	//	<< "		\"dimensions\":\"" << dstS.width << "x" << dstS.height << "\"," << endl
-	//	<< "		\"numframes\":\"" << totalTstFrames << "\"" 			<< endl
-	//	<< "	}," 									<< endl
-	//	<< "	\"testsPerformed\":\"" << tests << "\","				<< endl
-	//	<< "	\"results\":{" 								<< endl;
 
 	cout << "Source media: " << referenceVideo << " (" << refS.width << "x" << refS.height << " [" << totalSrcFrames << " frames])" << endl;
 	cout << "Test media: " << testVideo << " (" << dstS.width << "x" << dstS.height << " [" << totalTstFrames << " frames])" << endl;
@@ -293,15 +275,12 @@ int main(int argc, char **argv){
 			cout << "\x1B[0E";
 			cout << "frame: " << frameNum << " -> PSNR: " << setiosflags(ios::fixed) << setprecision(3) << psnrV << " RMSE: " << setiosflags(ios::fixed) << setprecision(3) << rmseV;
 
+			// add to output
 			fprintf(outputfile, templateFrame, frameNum, psnrV, rmseV, curTstMsec, curSrcMsec);
-			//outputfile << "		\"frame_" << frameNum << "\":{" << endl
-			//	<< "			\"psnr\":\"" << setiosflags(ios::fixed) << setprecision(3) << psnrV << "\"," << endl
-			//	<< "			\"rmse\":\"" << setiosflags(ios::fixed) << setprecision(3) << rmseV << "\"," << endl
-			//	<< "			\"tmsec\":\"" << curTstMsec << "\"," << endl
-			//	<< "			\"smsec\":\"" << curSrcMsec << "\"";
 
 			if (withmssim){
 				mssimV = getMSSIM(frameRReference, frameTest);
+				// TODO: Find a way to incorporate MSSIM values........
 			//	outputfile << "," << endl
 			//		<< "			\"mssim\": {" << endl
 			//		<< "				\"R\":\"" << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << "\"," << endl
@@ -311,20 +290,13 @@ int main(int argc, char **argv){
 				cout << " -> MSSIM: R: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[2] * 100 << ", G: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[1] * 100 << ", B: " << setiosflags(ios::fixed) << setprecision(2) << mssimV.val[0] * 100;
 			}
 			flush(cout);
-
-			//outputfile << endl
-			//	<< "		}," << endl;
-
 		}
 	}
 	double avgpsnr = sumpsnr / loops;
 	double avgrmse = sumrmse / loops;
+
+	// finish up the output
 	fprintf(outputfile, templateFooter, frameNum, avgpsnr, avgrmse);
-	//outputfile << "		\"framecount\":\"" << frameNum << "\"," << endl
-	//	<< "		\"avg psnr\":\"" << avgpsnr << "\"," << endl
-	//	<< "		\"avg rmse\":\"" << avgrmse << "\"" << endl
-	//	<< "	}" << endl
-	//	<< "}" << endl;
 	fclose(outputfile);
 	return 0;
 }

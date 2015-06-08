@@ -58,6 +58,8 @@ int main(int argc, char **argv){
 	int loops = 0; // loopcounter
 	double sumpsnr;
 	double sumrmse;
+	double minrmse;
+	double maxrmse;
 	int c;
 
 	while ((c = getopt (argc, argv, "s:t:o:n:f:a:b:m")) != -1){
@@ -253,6 +255,8 @@ int main(int argc, char **argv){
 			cout << "\x1B[0E";
 			flush(cout);
 			cout << "Comparison completed... " << endl;
+			cout << "Avg PSNR: " << avgpsnr << endl;
+			cout << "Avg RMSE: " << avgrmse << endl;
 			cout << "Results can be found in " << oFile << endl;
 			break;
 		}
@@ -267,6 +271,18 @@ int main(int argc, char **argv){
 			resize(frameReference, frameRReference, dstS, 0, 0);
 			psnrV = getPSNR(frameRReference,frameTest);
 			rmseV = getRMSE(frameRReference, frameTest);
+
+			if (loops == 1) {
+				minrmse = rmseV;
+				maxrmse = rmseV;
+			} else {
+				if (rmseV < minrmse) {
+					minrmse = rmseV;
+				}
+				if (rmseV > maxrmse) {
+					maxrmse = rmseV;
+				}
+			}
 
 			sumpsnr += psnrV;
 			sumrmse += rmseV;
@@ -296,6 +312,7 @@ int main(int argc, char **argv){
 	// make avarages
 	double avgpsnr = sumpsnr / loops;
 	double avgrmse = sumrmse / loops;
+	//double nrmlrmse = 
 
 	// finish up the output
 	fprintf(outputfile, templateFooter, frameNum, avgpsnr, avgrmse);
